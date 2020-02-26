@@ -21,6 +21,10 @@ auth = dash_auth.BasicAuth(
 app.layout = html.Div([
     html.H1('Welcome to the app'),
     html.H3('You are successfully authorized'),
+    html.Div(children='some cool formatted text', style={
+        'textAlign': 'center',
+        'color': colors['text']
+    }),
     dcc.Dropdown(
         id='dropdown',
         options=[{'label': i, 'value': i} for i in ['A', 'B']],
