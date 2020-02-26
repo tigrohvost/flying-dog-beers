@@ -3,3 +3,4 @@ dash-auth
 dash-core-components
 dash-html-components
 plotly
+gunicorn
