@@ -1,53 +1,62 @@
 import dash
-import dash_auth
 import dash_core_components as dcc
 import dash_html_components as html
-import plotly
+import pandas as pd
 
-# Keep this out of source code repository - save in a file or a database
-VALID_USERNAME_PASSWORD_PAIRS = {
-    'hello': 'world'
-}
+df = pd.read_csv('https://raw.githubusercontent.com/plotly/datasets/master/2011_february_us_airport_traffic.csv')
+df.head()
 
-external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+df['text'] = df['airport'] + '' + df['city'] + ', ' + df['state'] + '' + 'Arrivals: ' + df['cnt'].astype(str)
 
-app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
-server = app.server
-auth = dash_auth.BasicAuth(
-    app,
-    VALID_USERNAME_PASSWORD_PAIRS
-)
+scl = [ [0,"rgb(5, 10, 172)"],[0.35,"rgb(40, 60, 190)"],[0.5,"rgb(70, 100, 245)"],\
+    [0.6,"rgb(90, 120, 245)"],[0.7,"rgb(106, 137, 247)"],[1,"rgb(220, 220, 220)"] ]
 
-some_var = '^_^'
+data = [ dict(
+        type = 'scattergeo',
+        locationmode = 'USA-states',
+        lon = df['long'],
+        lat = df['lat'],
+        text = df['text'],
+        mode = 'markers',
+        marker = dict(
+            size = 8,
+            opacity = 0.8,
+            reversescale = True,
+            autocolorscale = False,
+            symbol = 'square',
+            line = dict(
+                width=1,
+                color='rgba(102, 102, 102)'
+            ),
+            colorscale = scl,
+            cmin = 0,
+            color = df['cnt'],
+            cmax = df['cnt'].max(),
+            colorbar=dict(
+                title="Incoming flightsFebruary 2011"
+            )
+        ))]
 
-app.layout = html.Div([
-    html.H1('Welcome to the app'),
-    html.H3('You are successfully authorized'),
-    html.H3(some_var),
-    dcc.Dropdown(
-        id='dropdown',
-        options=[{'label': i, 'value': i} for i in ['A', 'B']],
-        value='A'
-    ),
-    dcc.Graph(id='graph')
-], className='container')
+layout = dict(
+        title = 'Most trafficked US airports<br>(Hover for airport names)',
+        colorbar = True,
+        geo = dict(
+            scope='usa',
+            projection=dict( type='albers usa' ),
+            showland = True,
+            landcolor = "rgb(250, 250, 250)",
+            subunitcolor = "rgb(217, 217, 217)",
+            countrycolor = "rgb(217, 217, 217)",
+            countrywidth = 0.5,
+            subunitwidth = 0.5
+        ),
+    )
 
-@app.callback(
-    dash.dependencies.Output('graph', 'figure'),
-    [dash.dependencies.Input('dropdown', 'value')])
-def update_graph(dropdown_value):
-    return {
-        'layout': {
-            'title': 'Graph of {}'.format(dropdown_value),
-            'margin': {
-                'l': 20,
-                'b': 20,
-                'r': 10,
-                't': 60
-            }
-        },
-        'data': [{'x': [1, 2, 3], 'y': [4, 1, 2]}]
-    }
+fig = dict( data=data, layout=layout )    
+
+app.layout  = html.Div([
+    dcc.Graph(id='graph', figure=fig)
+])
 
 if __name__ == '__main__':
     app.run_server(debug=True)
